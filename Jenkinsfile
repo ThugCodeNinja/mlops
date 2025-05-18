@@ -45,13 +45,15 @@ pipeline{
 
                         gcloud config set project ${GCP_PROJECT}
 
-                        gcloud auth configure-docker --quiet
+                        cp ${GOOGLE_APPLICATION_CREDENTIALS} sa.json
 
                         gcloud auth configure-docker asia-south1-docker.pkg.dev
 
                         docker build -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
 
                         docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest 
+
+                        rm /tmp/sa.json
 
                         '''
                     }
