@@ -1,0 +1,15 @@
+pipeline{
+    agents any
+
+    stages{
+        stage('Cloning github code'){
+            steps{
+                script(
+                    echo 'Cloning github code ................'
+                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-token', url: 'https://github.com/ThugCodeNinja/mlops.git']])
+                    
+                )
+            }
+        }
+    }
+}
