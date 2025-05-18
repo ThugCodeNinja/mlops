@@ -5,6 +5,7 @@ FROM python:slim
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
+
 # Set the working directory
 WORKDIR /app
 
