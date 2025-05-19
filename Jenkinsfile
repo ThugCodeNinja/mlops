@@ -48,9 +48,7 @@ pipeline{
                         gcloud config set project ${GCP_PROJECT}
                         gcloud auth configure-docker asia-south1-docker.pkg.dev
 
-                        docker build \
-                        --build-arg GOOGLE_APPLICATION_CREDENTIALS_PATH=$TMP_SA_PATH \
-                        -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
+                        docker build -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
 
                         docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest
 
@@ -80,7 +78,8 @@ pipeline{
                             --image=asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest \
                             --platform=managed \
                             --region=asia-south1 \
-                            --allow-unauthenticated
+                            --allow-unauthenticated \
+                            --service-account=svc-data-ingest@my-project-1705665346715.iam.gserviceaccount.com
                             
                         '''
                     }
