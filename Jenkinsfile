@@ -41,14 +41,16 @@ pipeline{
 
                         TMP_SA_PATH=/tmp/sa.json
 
-                        cp ${GOOGLE_APPLICATION_CREDENTIALS} $TMP_SA_PATH
+                        cat ${GOOGLE_APPLICATION_CREDENTIALS} $TMP_SA_PATH
 
                         gcloud auth activate-service-account --key-file=$TMP_SA_PATH
 
                         gcloud config set project ${GCP_PROJECT}
                         gcloud auth configure-docker asia-south1-docker.pkg.dev
 
-                        docker build -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
+                        docker build \
+                        --build-arg GOOGLE_APPLICATION_CREDENTIALS_PATH=$TMP_SA_PATH \
+                        -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
 
                         docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest
 
