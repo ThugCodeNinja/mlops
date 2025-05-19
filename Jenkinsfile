@@ -31,7 +31,7 @@ pipeline{
                 }
             }
 
-        stage('Building and Pushing Docker Image to GCR'){
+        stage('Building and Pushing Docker Image to GAR'){
             steps{
                 withCredentials([file(credentialsId: 'sa-json', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     script {
@@ -51,9 +51,7 @@ pipeline{
 
                         gcloud auth configure-docker asia-south1-docker.pkg.dev
 
-                        docker build \
-                        --build-arg GOOGLE_APPLICATION_CREDENTIALS_PATH=/tmp/sa.json \
-                        -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
+                        docker build -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
 
                         docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest
 
