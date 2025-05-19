@@ -10,7 +10,7 @@ LIGHTGM_PARAMETERS = {
 
 RANDOM_SEARCH_PARAMETERS = {
     'n_iter': 4,
-    'cv': 5,
+    'cv': 4,
     'verbose': 2,
     'scoring': "accuracy",
     'n_jobs': -1,
