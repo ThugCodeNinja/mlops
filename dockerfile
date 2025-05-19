@@ -1,35 +1,24 @@
-# Use a lightweight Python image
+# Base image
 FROM python:slim
 
-# Set environment variables to prevent Python from writing .pyc files & Ensure Python output is not buffered
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-
-# Set the working directory
 WORKDIR /app
 
-# Install system dependencies required by LightGBM
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgomp1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    libgomp1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the application code
 COPY . .
 
-# Install the package in editable mode
+
 RUN pip install --no-cache-dir -e .
 
-COPY sa.json /tmp/sa.json
-ENV GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa.json
+# Do not run training here (avoid credential requirement)
 
-RUN pip install --no-cache-dir -e . && \
-    python pipeline/training_pipeline.py && \
-    rm /tmp/sa.json
-
-# Expose the port that Flask will run on
 EXPOSE 5000
 
-# Command to run the app
-CMD ["python", "application.py"]
+# Run training + app when container starts
+CMD ["bash", "-c", "python pipeline/training_pipeline.py && python application.py"]
