@@ -33,31 +33,61 @@ pipeline{
 
         stage('Building and Pushing Docker Image to GCR'){
             steps{
-                withCredentials([file(credentialsId: 'sa-json' , variable : 'GOOGLE_APPLICATION_CREDENTIALS')]){
-                    script{
-                        echo 'Building and Pushing Docker Image to GCR.............'
+                withCredentials([file(credentialsId: 'sa-json', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
+                    script {
+                        echo 'Building and Pushing Docker Image to GCR...'
                         sh '''
                         export PATH=$PATH:${GCLOUD_PATH}
 
-                        export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
+                        TMP_SA_JSON_PATH=/tmp/sa.json
+
+                        cp ${GOOGLE_APPLICATION_CREDENTIALS} $TMP_SA_JSON_PATH
+
+                        export GOOGLE_APPLICATION_CREDENTIALS=$TMP_SA_JSON_PATH
+
+                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+
+                        gcloud config set project ${GCP_PROJECT}
+
+                        gcloud auth configure-docker asia-south1-docker.pkg.dev
+
+                        docker build \
+                        --build-arg GOOGLE_APPLICATION_CREDENTIALS_PATH=/tmp/sa.json \
+                        -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
+
+                        docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest
+
+                        rm -f $TMP_SA_JSON_PATH
+                        '''
+                    }
+                }
+
+            }
+        }
+
+        stage('Deploying in cloud run'){
+            steps{
+                withCredentials([file(credentialsId: 'sa-json' , variable : 'GOOGLE_APPLICATION_CREDENTIALS')]){
+                    script{
+                        echo 'Deploy to Google Cloud Run.............'
+                        sh '''
+                        export PATH=$PATH:${GCLOUD_PATH}
+
 
                         gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS}
 
                         gcloud config set project ${GCP_PROJECT}
 
-                        cp ${GOOGLE_APPLICATION_CREDENTIALS} sa.json
-
-                        gcloud auth configure-docker asia-south1-docker.pkg.dev
-
-                        docker build -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
-
-                        docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest 
-
-                        rm /tmp/sa.json
-
+                        gcloud run deploy ml-project \
+                            --image=asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest \
+                            --platform=managed \
+                            --region=asia-south1 \
+                            --allow-unauthenticated
+                            
                         '''
                     }
                 }
+
             }
         }
 
