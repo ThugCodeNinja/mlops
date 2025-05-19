@@ -35,27 +35,26 @@ pipeline{
             steps{
                 withCredentials([file(credentialsId: 'sa-json', variable: 'GOOGLE_APPLICATION_CREDENTIALS')]) {
                     script {
-                        echo 'Building and Pushing Docker Image to GCR...'
+                        echo 'Building and Pushing Docker Image to GAR...'
                         sh '''
                         export PATH=$PATH:${GCLOUD_PATH}
 
-                        TMP_SA_JSON_PATH=/tmp/sa.json
+                        # Copy the SA key into build context temporarily
+                        cp ${GOOGLE_APPLICATION_CREDENTIALS} ./sa.json
 
-                        cp ${GOOGLE_APPLICATION_CREDENTIALS} $TMP_SA_JSON_PATH
+                        # Make sure it’s in .dockerignore to avoid accidental inclusion
+                        echo "sa.json" >> .dockerignore
 
-                        export GOOGLE_APPLICATION_CREDENTIALS=$TMP_SA_JSON_PATH
-
-                        gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
-
+                        gcloud auth activate-service-account --key-file=sa.json
                         gcloud config set project ${GCP_PROJECT}
-
                         gcloud auth configure-docker asia-south1-docker.pkg.dev
 
                         docker build -t asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest .
 
                         docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest
 
-                        rm -f $TMP_SA_JSON_PATH
+                        # Cleanup
+                        rm sa.json
                         '''
                     }
                 }
