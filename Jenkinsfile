@@ -39,13 +39,12 @@ pipeline{
                         sh '''
                         export PATH=$PATH:${GCLOUD_PATH}
 
-                        # Copy the SA key into build context temporarily
-                        cp ${GOOGLE_APPLICATION_CREDENTIALS} ./sa.json
+                        TMP_SA_PATH=/tmp/sa.json
 
-                        # Make sure it’s in .dockerignore to avoid accidental inclusion
-                        echo "sa.json" >> .dockerignore
+                        cp ${GOOGLE_APPLICATION_CREDENTIALS} $TMP_SA_PATH
 
-                        gcloud auth activate-service-account --key-file=sa.json
+                        gcloud auth activate-service-account --key-file=$TMP_SA_PATH
+
                         gcloud config set project ${GCP_PROJECT}
                         gcloud auth configure-docker asia-south1-docker.pkg.dev
 
@@ -54,7 +53,7 @@ pipeline{
                         docker push asia-south1-docker.pkg.dev/${GCP_PROJECT}/mlops/ml-project:latest
 
                         # Cleanup
-                        rm sa.json
+                        rm -f $TMP_SA_PATH
                         '''
                     }
                 }
